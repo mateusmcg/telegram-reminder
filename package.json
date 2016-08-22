@@ -1,0 +1,28 @@
+{
+  "name": "telegram-reminder",
+  "version": "1.0.0",
+  "description": "A simple bot with the purpose of remind people",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mateusmcg/telegram-reminder.git"
+  },
+  "keywords": [
+    "bot",
+    "telegram",
+    "cron",
+    "reminder"
+  ],
+  "author": "Mateus Cerqueira <mateus.mcg@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mateusmcg/telegram-reminder/issues"
+  },
+  "homepage": "https://github.com/mateusmcg/telegram-reminder#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
