@@ -29,7 +29,7 @@ var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), {polling: true});
 
 // Any kind of message
 bot.onText('/\/start', function (msg) {
-    var chatId = msg.chat.id;
+    var chatId = msg.from.id;
     var remidnerTelegram = new ReminderTelegram();
     remidnerTelegram.id = remidnerTelegram._id;
     remidnerTelegram.chatId = chatId;
