@@ -18,7 +18,7 @@ mongoose.connect(process.env.MONGOLAB_URI, function (error) {
 });
 
 var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), { polling: true });
-var Model = mongoose.model('ReminderTelegram', new Schema({ chatId: String }));
+var Model = mongoose.model('ReminderTelegram', { chatId: String });
 
 // Any kind of message
 bot.on('message', function (msg) {
@@ -28,20 +28,28 @@ bot.on('message', function (msg) {
 
     switch (message) {
         case '/start': {
-            Model.findOne({ chatId: chatId }, function (err, doc) {
-                if (doc) {
-                    bot.sendMessage(chatId, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel');
-                } else {
-                    obj.save(function (err) {
-                        bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel');
-                    });
-                }
-            })
+            try {
+                Model.findOne({ chatId: chatId }, function (err, doc) {
+                    if (doc) {
+                        bot.sendMessage(chatId, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel');
+                    } else {
+                        obj.save(function (err) {
+                            bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel');
+                        });
+                    }
+                })
+            } catch (e) {
+                bot.sendMessage(chatId, e.name + '/' + e.message);
+            }
         } break;
         case '/cancel': {
-            obj.remove({ chatId: chatId }, function (err, obj) {
-                bot.sendMessage(chatId, 'Serviço cancelado com sucesso!');
-            })
+            try {
+                obj.remove({ chatId: chatId }, function (err) {
+                    bot.sendMessage(chatId, 'Serviço cancelado com sucesso!');
+                })
+            } catch (e) {
+                bot.sendMessage(chatId, e.name + '/' + e.message);
+            }
         } break;
     }
 });
