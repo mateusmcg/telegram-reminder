@@ -1,4 +1,5 @@
-var TelegramBot = require('node-telegram-bot-api');
+var TelegramBot = require('node-telegram-bot-api'),
+    Models = require('../database/models/models');
 
 console.log('Starting bot server.');
 
@@ -8,16 +9,25 @@ bot.setWebHook(process.env.HEROKU_URL + bot.token);
 
 bot.onText(/^\/start/, function (msg, match) {
     var chatId = msg.chat.id;
-    bot.sendMessage(msg.chat.id, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel !').then(function () {
-        // reply sent!
+    Models.PillRemidner.findOne({ chatId: chatId }, function (doc) {
+        if (doc) {
+            bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel').then(function () { });
+        } else {
+            var newChat = new Models.PillRemidner({ chatId: chatId });
+            newChat.save(function (err, newChat) {
+                bot.sendMessage(msg.chat.id, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel').then(function () { });
+            });
+        }
     });
 });
 
 bot.onText(/^\/cancel/, function (msg, match) {
     var chatId = msg.chat.id;
-    bot.sendMessage(msg.chat.id, 'Serviço cancelado com sucesso!!').then(function () {
-        // reply sent!
-    });
+    Models.PillRemidner.findOne({ chatId: chatId }, function (doc) {
+        doc.remove(function (err, doc) {
+            bot.sendMessage(msg.chat.id, 'Serviço cancelado com sucesso!').then(function () { });
+        })
+    })
 });
 
 console.log('Bot server started.');
