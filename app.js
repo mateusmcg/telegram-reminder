@@ -38,6 +38,18 @@ bot.on('message', function (msg) {
                 bot.sendMessage(chatId, e.name + '/' + e.message);
             }
         } break;
+        case '/cancel': {
+            try {
+                var ReminderTelegram = mongoose.model('ReminderTelegram', { chatId: String });
+                var obj = new ReminderTelegram({chatId: chatId.toString()});
+                obj.remove();
+                obj.save(function(err){
+                    bot.sendMessage(chatId, 'Serviço cancelado com sucesso!');
+                });
+            } catch (e){
+                bot.sendMessage(chatId, e.name + '/' + e.message);
+            }
+        } break;
     }
 });
 
