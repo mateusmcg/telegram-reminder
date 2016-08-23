@@ -13,6 +13,12 @@ app.set('TELEGRAM_BOT_TOKEN', process.env.TELEGRAM_BOT_TOKEN || '263464526:AAGLX
 
 var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), {polling: true});
 
+// Any kind of message
+bot.on('message', function (msg) {
+  var chatId = msg.chat.id;
+  bot.sendMessage(chatId, 'Funcionou !');
+});
+
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 
