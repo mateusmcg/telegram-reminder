@@ -4,7 +4,7 @@ console.log('Executando scheduled job');
 
 console.log('Criando BOT' + process.env.TELEGRAM_BOT_TOKEN);
 var TelegramBot = require('node-telegram-bot-api');
-var bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {polling: true});
+var bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 console.log('BOT criado');
 
 console.log('Instanciando e conectando no MongoDB' + process.env.MONGOLAB_URI);

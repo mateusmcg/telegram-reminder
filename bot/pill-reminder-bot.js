@@ -9,7 +9,7 @@ bot.setWebHook(process.env.HEROKU_URL + bot.token);
 
 bot.onText(/^\/start/, function (msg, match) {
     var chatId = msg.chat.id.toString();
-    Models.PillReminder.findOne({ chatId: chatId }, function (doc) {
+    Models.PillReminder.find({ chatId: chatId }, function (doc) {
         if (doc) {
             bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel').then(function () { });
         } else {
@@ -23,10 +23,10 @@ bot.onText(/^\/start/, function (msg, match) {
 
 bot.onText(/^\/cancel/, function (msg, match) {
     var chatId = msg.chat.id.toString();
-    Models.PillReminder.findOne({ chatId: chatId }, function (doc) {
-        doc.remove(function (err, doc) {
+    Models.PillReminder.findOneAndRemove({ chatId: chatId }, function (doc) {
+        if (doc) {
             bot.sendMessage(msg.chat.id, 'Serviço cancelado com sucesso!').then(function () { });
-        })
+        }
     })
 });
 
