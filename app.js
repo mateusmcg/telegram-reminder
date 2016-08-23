@@ -19,20 +19,26 @@ mongoose.connect(process.env.MONGOLAB_URI, function (error) {
 
 var ReminderTelegram = mongoose.model('ReminderTelegram', { id: String, chatId: String });
 
-var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), {polling: true});
+var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), { polling: true });
 
 // Any kind of message
-bot.onText('/\/start/', function (msg) {
-    var chatId = msg.from.id;
-    bot.sendMessage(chatId, 'Método foi acionado');
-    var remidnerTelegram = new ReminderTelegram({
-        id: remidnerTelegram._id,
-        chatId: chatId
-    });
-    remidnerTelegram.save(function (err) {
-        bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30.');
-    });
-    bot.sendMessage(chatId, 'Método foi acionado e chegou ao fim');
+bot.on('message', function (msg) {
+    var chatId = msg.chat.id;
+    var message = msg.text;
+
+    switch (message) {
+        case '/start': {
+            bot.sendMessage(chatId, 'Método foi acionado');
+            var remidnerTelegram = new ReminderTelegram({
+                id: remidnerTelegram._id,
+                chatId: chatId
+            });
+            remidnerTelegram.save(function (err) {
+                bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30.');
+            });
+            bot.sendMessage(chatId, 'Método foi acionado e chegou ao fim');
+        } break;
+    }
 });
 
 // set the view engine to ejs
@@ -43,9 +49,9 @@ app.get('/', function (req, res) {
 });
 
 app.get('/getMe', function (req, res) {
-   bot.getMe().then(function (botInfo) {
-      res.send(botInfo); 
-   });
+    bot.getMe().then(function (botInfo) {
+        res.send(botInfo);
+    });
 });
 
 app.listen(app.get('port'), function () {
