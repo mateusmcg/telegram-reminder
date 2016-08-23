@@ -5,19 +5,6 @@ var TelegramBot = require('node-telegram-bot-api');
 var mongoose = require('mongoose');
 var app = express();
 
-// Mongoose Schema definition
-var Schema = new mongoose.Schema({
-    id       : String, 
-    chatId    : String
-});
-
-var ReminderTelegram = mongoose.model('ReminderTelegram', Schema);
-
-mongoose.connect(process.env.MONGOLAB_URI, function (error) {
-    if (error) console.error(error);
-    else console.log('mongo connected');
-});
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 
@@ -25,17 +12,27 @@ app.set('port', (process.env.PORT || 5000));
 app.set('TELEGRAM_API_URL', process.env.TELEGRAM_BOT_TOKEN);
 app.set('TELEGRAM_BOT_TOKEN', process.env.TELEGRAM_BOT_TOKEN || '263464526:AAGLXjdte-AwkImK0s4n_zqQwiaSCVDePeI');
 
+mongoose.connect(process.env.MONGOLAB_URI, function (error) {
+    if (error) console.error(error);
+    else console.log('mongo connected');
+});
+
+var ReminderTelegram = mongoose.model('ReminderTelegram', { id: String, chatId: String });
+
 var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), {polling: true});
 
 // Any kind of message
 bot.onText('/\/start', function (msg) {
     var chatId = msg.from.id;
-    var remidnerTelegram = new ReminderTelegram();
-    remidnerTelegram.id = remidnerTelegram._id;
-    remidnerTelegram.chatId = chatId;
+    bot.sendMessage(chatId, 'Método foi acionado');
+    var remidnerTelegram = new ReminderTelegram({
+        id: remidnerTelegram._id,
+        chatId: chatId
+    });
     remidnerTelegram.save(function (err) {
         bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30.');
     });
+    bot.sendMessage(chatId, 'Método foi acionado e chegou ao fim');
 });
 
 // set the view engine to ejs
