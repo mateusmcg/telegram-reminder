@@ -12,7 +12,7 @@ app.set('port', (process.env.PORT || 5000));
 app.set('TELEGRAM_API_URL', process.env.TELEGRAM_BOT_TOKEN);
 app.set('TELEGRAM_BOT_TOKEN', process.env.TELEGRAM_BOT_TOKEN || '263464526:AAGLXjdte-AwkImK0s4n_zqQwiaSCVDePeI');
 
-mongoose.connect(process.env.MONGOLAB_URI, function (error) {
+mongoose.connect('mongodb://mateusc:mateusc@ds013916.mlab.com:13916/heroku_wlxnk213', function (error) {
     if (error) console.error(error);
     else console.log('mongo connected');
 });
@@ -27,19 +27,15 @@ bot.on('message', function (msg) {
     switch (message) {
         case '/start': {
             try {
-                bot.sendMessage(chatId, 'Método foi acionado');
                 var ReminderTelegram = mongoose.model('ReminderTelegram', { chatId: String });
                 var obj = new ReminderTelegram({
                     chatId: chatId.toString()
                 });
                 obj.save(function (err) {
-                    bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30.');
+                    bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel');
                 });
-                bot.sendMessage(chatId, 'Método foi acionado e chegou ao fim');
             } catch (e) {
                 bot.sendMessage(chatId, e.name + '/' + e.message);
-            } finally {
-                bot.sendMessage(chatId, 'Terminou de executar.');
             }
         } break;
     }
@@ -50,12 +46,6 @@ app.set('view engine', 'ejs');
 
 app.get('/', function (req, res) {
     res.send('Hello World!');
-});
-
-app.get('/getMe', function (req, res) {
-    bot.getMe().then(function (botInfo) {
-        res.send(botInfo);
-    });
 });
 
 app.listen(app.get('port'), function () {
