@@ -22,7 +22,7 @@ var ReminderTelegram = mongoose.model('ReminderTelegram', { id: String, chatId: 
 var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), {polling: true});
 
 // Any kind of message
-bot.onText('/\/start', function (msg) {
+bot.onText('/\/start/', function (msg) {
     var chatId = msg.from.id;
     bot.sendMessage(chatId, 'Método foi acionado');
     var remidnerTelegram = new ReminderTelegram({
