@@ -9,7 +9,7 @@ bot.setWebHook(process.env.HEROKU_URL + bot.token);
 
 bot.onText(/^\/start/, function (msg, match) {
     var chatId = msg.chat.id.toString();
-    Models.PillReminder.find({ chatId: chatId }, function (doc) {
+    Models.PillReminder.findOne({ chatId: chatId }, function (doc) {
         if (doc) {
             bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel').then(function () { });
         } else {
