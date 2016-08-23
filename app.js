@@ -10,7 +10,7 @@ app.use(bodyParser.json())
 
 app.set('port', (process.env.PORT || 5000));
 app.set('TELEGRAM_API_URL', process.env.TELEGRAM_BOT_TOKEN);
-app.set('TELEGRAM_BOT_TOKEN', process.env.TELEGRAM_BOT_TOKEN || '263464526:AAGLXjdte-AwkImK0s4n_zqQwiaSCVDePeI');
+app.set('TELEGRAM_BOT_TOKEN', process.env.TELEGRAM_BOT_TOKEN);
 
 mongoose.connect(process.env.MONGOLAB_URI, function (error) {
     if (error) console.error(error);
@@ -22,18 +22,20 @@ var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), { polling: true });
 // Any kind of message
 bot.on('message', function (msg) {
     var chatId = msg.chat.id.toString();
+    bot.sendMessage(chatId, 'Acionou o serviço');
+
     var message = msg.text;
     var Model = mongoose.model('ReminderTelegram', { chatId: String });
+    var modelObj = new Model({ chatId: chatId });
 
     switch (message) {
         case '/start': {
             try {
-                var obj = new Model({ chatId: chatId });
-                Model.findOne({ chatId: chatId }, function (err, doc) {
+                modelObj.find(function (err, doc) {
                     if (doc) {
                         bot.sendMessage(chatId, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel');
                     } else {
-                        obj.save(function (err) {
+                        modelObj.save(function (err) {
                             bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel');
                         });
                     }
@@ -44,7 +46,7 @@ bot.on('message', function (msg) {
         } break;
         case '/cancel': {
             try {
-                Model.find().remove({ chatId: chatId.toString() }, function (err) {
+                modelObj.find().remove({ chatId: chatId }, function (err) {
                     bot.sendMessage(chatId, 'Serviço cancelado com sucesso!');
                 })
             } catch (e) {
