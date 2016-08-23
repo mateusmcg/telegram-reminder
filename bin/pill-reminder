@@ -19,7 +19,9 @@ function pillReminder() {
   var ReminderTelegram = mongoose.model('ReminderTelegram', { chatId: String });
 
   ReminderTelegram.find(function(err, objs){
-    objs.map(function(item){
+    console.log('Find executado. Obj de erro: ', err);  
+    console.log('Find executado. Obj de retorno do find: ', objs);  
+    objs.forEach(function(item){
         console.log('Enviando mensagem');
         bot.sendMessage(item._doc.chatId, "Vai tomar o remédio...");
     });
