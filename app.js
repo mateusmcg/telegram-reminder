@@ -17,8 +17,6 @@ mongoose.connect(process.env.MONGOLAB_URI, function (error) {
     else console.log('mongo connected');
 });
 
-var ReminderTelegram = mongoose.model('ReminderTelegram', { id: String, chatId: String });
-
 var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), { polling: true });
 
 // Any kind of message
@@ -28,15 +26,21 @@ bot.on('message', function (msg) {
 
     switch (message) {
         case '/start': {
-            bot.sendMessage(chatId, 'Método foi acionado');
-            var remidnerTelegram = new ReminderTelegram({
-                id: remidnerTelegram._id,
-                chatId: chatId
-            });
-            remidnerTelegram.save(function (err) {
-                bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30.');
-            });
-            bot.sendMessage(chatId, 'Método foi acionado e chegou ao fim');
+            try {
+                bot.sendMessage(chatId, 'Método foi acionado');
+                var ReminderTelegram = mongoose.model('ReminderTelegram', { chatId: String });
+                var obj = new ReminderTelegram({
+                    chatId: chatId.toString()
+                });
+                obj.save(function (err) {
+                    bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30.');
+                });
+                bot.sendMessage(chatId, 'Método foi acionado e chegou ao fim');
+            } catch (e) {
+                bot.sendMessage(chatId, e.name + '/' + e.message);
+            } finally {
+                bot.sendMessage(chatId, 'Terminou de executar.');
+            }
         } break;
     }
 });
