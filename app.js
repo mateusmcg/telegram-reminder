@@ -18,40 +18,30 @@ mongoose.connect(process.env.MONGOLAB_URI, function (error) {
 });
 
 var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), { polling: true });
+var Model = mongoose.model('ReminderTelegram', new Schema({ chatId: String }));
 
 // Any kind of message
 bot.on('message', function (msg) {
     var chatId = msg.chat.id.toString();
-    bot.sendMessage(chatId, 'Acionou o serviço');
-
     var message = msg.text;
-    var Model = mongoose.model('ReminderTelegram', { chatId: String });
-    var modelObj = new Model({ chatId: chatId });
+    var obj = new Model({ chatId: chatId });
 
     switch (message) {
         case '/start': {
-            try {
-                modelObj.find(function (err, doc) {
-                    if (doc) {
-                        bot.sendMessage(chatId, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel');
-                    } else {
-                        modelObj.save(function (err) {
-                            bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel');
-                        });
-                    }
-                })
-            } catch (e) {
-                bot.sendMessage(chatId, e.name + '/' + e.message);
-            }
+            Model.findOne({ chatId: chatId }, function (err, doc) {
+                if (doc) {
+                    bot.sendMessage(chatId, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel');
+                } else {
+                    obj.save(function (err) {
+                        bot.sendMessage(chatId, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel');
+                    });
+                }
+            })
         } break;
         case '/cancel': {
-            try {
-                modelObj.find().remove({ chatId: chatId }, function (err) {
-                    bot.sendMessage(chatId, 'Serviço cancelado com sucesso!');
-                })
-            } catch (e) {
-                bot.sendMessage(chatId, e.name + '/' + e.message);
-            }
+            obj.remove({ chatId: chatId }, function (err, obj) {
+                bot.sendMessage(chatId, 'Serviço cancelado com sucesso!');
+            })
         } break;
     }
 });
