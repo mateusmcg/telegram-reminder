@@ -27,12 +27,12 @@ app.get('/getMe', function (req, res) {
 });
 
 app.post('/reminder', function (req, res) {
-    var chatId = req.body.update.message.chat.id;
-    var message = req.body.update.message.text;
+    var chatId = req.body.message.chat.id;
+    var message = req.body.message.text;
     
     bot.sendMessage(chatId, message);
 
-    res.send(http);
+    res.send('Success !');
 });
 
 app.listen(app.get('port'), function () {
