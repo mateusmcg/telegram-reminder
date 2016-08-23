@@ -1,9 +1,9 @@
-#! /app/bin/node
+#!/usr/bin/env node
 
-var TelegramBot = require('../node-telegram-bot-api');
+var TelegramBot = require('node-telegram-bot-api');
 var bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {polling: true});
 
-var mongoose = require('../mongoose');
+var mongoose = require('mongoose');
 mongoose.connect(process.env.MONGOLAB_URI, function (error) {
     if (error) console.error(error);
     else console.log('mongo connected');

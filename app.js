@@ -23,11 +23,11 @@ var bot = new TelegramBot(app.get('TELEGRAM_BOT_TOKEN'), { polling: true });
 bot.on('message', function (msg) {
     var chatId = msg.chat.id.toString();
     var message = msg.text;
+    var Model = mongoose.model('ReminderTelegram', { chatId: String });
 
     switch (message) {
         case '/start': {
             try {
-                var Model = mongoose.model('ReminderTelegram', { chatId: String });
                 var obj = new Model({ chatId: chatId });
                 Model.findOne({ chatId: chatId }, function (err, doc) {
                     if (doc) {
@@ -44,7 +44,6 @@ bot.on('message', function (msg) {
         } break;
         case '/cancel': {
             try {
-                var Model = mongoose.model('ReminderTelegram', { chatId: String });
                 Model.find().remove({ chatId: chatId.toString() }, function (err) {
                     bot.sendMessage(chatId, 'Serviço cancelado com sucesso!');
                 })
