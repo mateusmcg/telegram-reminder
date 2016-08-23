@@ -3,6 +3,6 @@ var mongoose = require('mongoose'),
 
 var models = {};
 
-models.PillRemidner = mongoose.model('PillRemidner', schemas.pillReminder);
+models.PillReminder = mongoose.model('PillReminder', schemas.pillReminder);
 
 module.exports = models;
