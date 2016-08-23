@@ -1,0 +1,11 @@
+#! /app/bin/node
+
+var TelegramBot = require('node-telegram-bot-api');
+var bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {polling: true});
+
+function pillReminder() {
+  console.log('Hello');
+}
+
+pillReminder();
+process.exit();
