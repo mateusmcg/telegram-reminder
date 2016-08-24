@@ -18,7 +18,7 @@ db.once('open', function () {
     docs.forEach(function (item) {
       console.log('Enviando mensagem');
       bot.sendMessage(parseInt(item.chatId), process.env.TELEGRAM_BOT_MESSAGE).then(function () {
-        console.log('Mensagem enviada', err);
+        console.log('Mensagem enviada');
         process.exit();
       });
     });
