@@ -1,25 +1,28 @@
 #!/usr/bin/env node
 
 var TelegramBot = require('node-telegram-bot-api');
+var mongoose = require('mongoose');
 var Models = require('../database/models/models');
 
 console.log('Executando scheduled job');
 
 var bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+var db = mongoose.connection;
 
-function pillReminder() {
+db.on('error', console.error);
+db.once('open', function () {
   console.log('Executando task');
-  
-  Models.PillReminder.find(function(err, objs){
-    console.log('Find executado. Obj de erro: ', err);  
-    console.log('Find executado. Obj de retorno do find: ', objs);  
-    objs.forEach(function(item){
-        console.log('Enviando mensagem');
-        bot.sendMessage(item._doc.chatId, "Vai tomar o remédio...");
+
+  Models.PillReminder.find(function (err, docs) {
+    console.log('Find executado. Obj de retorno do find: ', docs);
+    docs.forEach(function (item) {
+      console.log('Enviando mensagem');
+      bot.sendMessage(parseInt(item.chatId), process.env.TELEGRAM_BOT_MESSAGE).then(function () {
+        console.log('Mensagem enviada', err);
+        process.exit();
+      });
     });
   });
-}
+});
 
-pillReminder();
-
-process.exit();
+mongoose.connect(process.env.MONGOLAB_URI);
