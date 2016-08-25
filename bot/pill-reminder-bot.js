@@ -42,6 +42,18 @@ bot.onText(/^\/setmessage (.+)/, function (msg, match) {
     });
 });
 
+bot.onText(/^\/getmessage/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+
+    Models.PillReminder.where({ chatId: chatId }).findOne(function (err, result) {
+        if (doc) {
+            bot.sendMessage(chatId, 'Sua mensagem de alerta é "' + doc.alertMessage + '"').then(function () { });
+        } else {
+            bot.sendMessage(chatId, 'Chat não encontrado, tente novamente mais tarde, ou contate o administrador.').then(function () { });
+        }
+    });
+});
+
 console.log('Bot server started.');
 
 module.exports = bot;
