@@ -45,7 +45,7 @@ bot.onText(/^\/setmessage (.+)/, function (msg, match) {
 bot.onText(/^\/getmessage/, function (msg, match) {
     var chatId = msg.chat.id.toString();
 
-    Models.PillReminder.where({ chatId: chatId }).findOne(function (err, result) {
+    Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
         if (doc) {
             bot.sendMessage(chatId, 'Sua mensagem de alerta é "' + doc.alertMessage + '"').then(function () { });
         } else {
