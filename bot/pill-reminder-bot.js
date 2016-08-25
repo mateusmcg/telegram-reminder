@@ -30,6 +30,18 @@ bot.onText(/^\/cancel/, function (msg, match) {
     })
 });
 
+bot.onText(/^\/setmessage (.+)/, function (msg, match) {
+    console.log('Msg obj: ', msg);
+    console.log('Match obj: ', match);
+
+    var chatId = msg.chat.id.toString();
+    var newMessage = match[1];
+
+    Models.PillReminder.update({ chatId: chatId }, { alertMessage: newMessage }, {}, function (err, result) {
+        bot.sendMessage(chatId, 'Mensagem de alerta alterada com sucesso para ' + newMessage).then(function () { });
+    });
+});
+
 console.log('Bot server started.');
 
 module.exports = bot;
