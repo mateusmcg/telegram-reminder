@@ -54,6 +54,16 @@ bot.onText(/^\/getmessage/, function (msg, match) {
     });
 });
 
+bot.onText(/^\/loop/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+    var options = {
+        reply_markup: {
+            keyboard: [[{text: 'Ativar'}, {text: 'Desativar'}]]
+        }
+    }
+    bot.sendMessage(chatId, 'Você será notificado a cada 10 minutos até que responda "done". Deseja ativar?', options).then(function () { });
+});
+
 console.log('Bot server started.');
 
 module.exports = bot;
