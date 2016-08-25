@@ -17,7 +17,7 @@ db.once('open', function () {
     console.log('Find executado. Obj de retorno do find: ', docs);
     docs.forEach(function (item) {
       console.log('Enviando mensagem');
-      bot.sendMessage(parseInt(item.chatId), process.env.TELEGRAM_BOT_MESSAGE).then(function () {
+      bot.sendMessage(parseInt(item.chatId), item.alertMessage ? item.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
         console.log('Mensagem enviada');
         process.exit();
       });
