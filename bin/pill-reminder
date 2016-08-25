@@ -15,14 +15,36 @@ db.once('open', function () {
 
   Models.PillReminder.find(function (err, docs) {
     console.log('Find executado. Obj de retorno do find: ', docs);
-    docs.forEach(function (item) {
-      console.log('Enviando mensagem');
-      bot.sendMessage(parseInt(item.chatId), item.alertMessage ? item.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
+    async.each(docs, function (doc) {
+      console.log('Enviando mensagem: ', doc);
+      bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
         console.log('Mensagem enviada');
-        process.exit();
+        keepSendingMessageAsync(doc);
       });
+
+      if (doc.loop) {
+        keepSendingMessageAsync(doc)
+      } else {
+        process.exit();
+      }
     });
   });
 });
+
+function keepSendingMessageAsync(doc) {
+  var fiveMinutes = 60000 * 5;
+  console.log('Irei te lembrar daqui 5 minutos: ', doc);
+  setTimeout(function () {
+    console.log('Soneca acionada ', doc);
+    if (!doc.tookThePill) {
+      bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
+        console.log('Mensagem soneca enviada');
+        keepSendingMessageAsync(doc);
+      });
+    } else {
+      process.exit();
+    }
+  }, fiveMinutes);
+}
 
 mongoose.connect(process.env.MONGOLAB_URI);

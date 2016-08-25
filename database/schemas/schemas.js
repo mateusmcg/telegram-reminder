@@ -4,7 +4,9 @@ var schemas = {};
 
 schemas.pillReminder = mongoose.Schema({
     chatId: String,
-    alertMessage: String
+    alertMessage: String,
+    tookThePill: Boolean,
+    loop: Boolean
 });
 
 module.exports = schemas;

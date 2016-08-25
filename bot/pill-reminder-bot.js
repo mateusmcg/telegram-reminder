@@ -54,21 +54,34 @@ bot.onText(/^\/getmessage/, function (msg, match) {
     });
 });
 
-bot.onText(/^\/loop/, function (msg, match) {
+bot.onText(/^\/loop (.+)/, function (msg, match) {
     var chatId = msg.chat.id.toString();
-    var options = {
-        reply_markup: {
-            keyboard: [[{text: 'Ativar'}, {text: 'Desativar'}]],
-            resize_keyboard: true,
-            one_time_keyboard: true
-        }
+    var active = match[1];
+
+    if (active) {
+        Models.PillReminder.update({ chatId: chatId }, { loop: active }, {}, function (err, result) {
+            bot.sendMessage(chatId, 'Serviço de mensagens de repetição ativado com sucesso.').then(function () { });
+        });
+    } else {
+        Models.PillReminder.update({ chatId: chatId }, { loop: active }, {}, function (err, result) {
+            bot.sendMessage(chatId, 'Serviço de mensagens de repetição desativado com sucesso.').then(function () { });
+        });
     }
-    bot.sendMessage(chatId, 'Você será notificado a cada 10 minutos até que responda "done". Deseja ativar?', options).then(function (err, log, doc, teste) {
-        console.log('err obj: ', err);
-        console.log('log obj: ', log);
-        console.log('doc obj: ', doc);
-        console.log('teste obj: ', teste);
-     });
+});
+
+bot.onText(/^\/tookit (.+)/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+    var tookit = match[1];
+
+    if (tookit) {
+        Models.PillReminder.update({ chatId: chatId }, { tookThePill: tookit }, {}, function (err, result) {
+            bot.sendMessage(chatId, 'Ok, vou parar de te lembrar por agora !').then(function () { });
+        });
+    } else {
+        Models.PillReminder.update({ chatId: chatId }, { tookThePill: tookit }, {}, function (err, result) {
+            bot.sendMessage(chatId, 'Ok ok, vou te lembrar, relaxa.').then(function () { });
+        });
+    }
 });
 
 console.log('Bot server started.');
