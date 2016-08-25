@@ -24,6 +24,7 @@ console.log('API started');
 
 module.exports = function (bot) {
     app.post('/' + app.get('TELEGRAM_BOT_TOKEN'), function (req, res) {
+        console.log(req.body);
         bot.processUpdate(req.body);
         res.sendStatus(200);
     });
