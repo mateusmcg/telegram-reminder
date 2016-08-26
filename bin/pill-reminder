@@ -16,17 +16,22 @@ db.once('open', function () {
 
   Models.PillReminder.find(function (err, docs) {
     console.log('Find executado. Obj de retorno do find: ', docs);
-    async.each(docs, function (doc) {
+    async.each(docs, function (doc, callback) {
       console.log('Enviando mensagem: ', doc);
       bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
         console.log('Mensagem enviada');
         keepSendingMessageAsync(doc);
+        callback();
       });
 
       if (doc.loop) {
         keepSendingMessageAsync(doc)
+      }
+    }, function (err) {
+      if (err) {
+        console.log('Erro ao enviar msg: ', err);
       } else {
-        process.exit();
+        console.log('All files have been processed successfully');
       }
     });
   });
