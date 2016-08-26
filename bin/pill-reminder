@@ -14,19 +14,18 @@ db.on('error', console.error);
 db.once('open', function () {
   console.log('Executando task');
 
+  Models.PillReminder.update({ loop: true }, { tookThePill: false }, {}, function (err, result) { });
   Models.PillReminder.find(function (err, docs) {
     console.log('Find executado. Obj de retorno do find: ', docs);
     async.each(docs, function (doc, callback) {
       console.log('Enviando mensagem: ', doc);
       bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
         console.log('Mensagem enviada');
-        keepSendingMessageAsync(doc);
         callback();
       });
 
-      if (doc.loop) {
-        keepSendingMessageAsync(doc)
-      }
+      keepSendingMessageAsync()
+
     }, function (err) {
       if (err) {
         console.log('Erro ao enviar msg: ', err);
@@ -37,19 +36,23 @@ db.once('open', function () {
   });
 });
 
-function keepSendingMessageAsync(doc) {
+function keepSendingMessageAsync() {
   var fiveMinutes = 60000 * 5;
-  console.log('Irei te lembrar daqui 5 minutos: ', doc);
+  console.log('Irei te lembrar daqui 5 minutos');
   setTimeout(function () {
-    console.log('Soneca acionada ', doc);
-    if (!doc.tookThePill) {
-      bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
-        console.log('Mensagem soneca enviada');
-        keepSendingMessageAsync(doc);
-      });
-    } else {
-      process.exit();
-    }
+    console.log('Soneca acionada');
+    Models.PillReminder.where({ loop: true, tookThePill: false }).find(function (err, docs) {
+      if (!docs || docs.length == 0) {
+        process.exit();
+      } else {
+        docs.forEach(function (doc) {
+          bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
+            console.log('Mensagem soneca enviada');
+          });
+        });
+        keepSendingMessageAsync();
+      }
+    });
   }, fiveMinutes);
 }
 
