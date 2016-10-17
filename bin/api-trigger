@@ -2,6 +2,8 @@
 
 var https = require('https');
 
+console.log('Executando scheduled job');
+
 function run() {
     console.log('Running...');
     https.get('https://api-sgv.azurewebsites.net/', function (response) {
