@@ -1,4 +1,4 @@
-#! /telegram-reminder/bin/node
+#! /app/bin/node
 
 var https = require('https');
 
