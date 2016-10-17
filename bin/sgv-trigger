@@ -1,7 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env node
 
-date
+var https = require('https');
 
-curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'https://api-sgv.azurewebsites.net/'
-curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'https://api-sgv-release.azurewebsites.net/'
-curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'https://api-sgv-develop.azurewebsites.net/'
+https.get('https://api-sgv.azurewebsites.net/', function(response){
+    console.log(response.statusCode + '-' + response.statusMessage);   
+});
+
+https.get('https://api-sgv-release.azurewebsites.net/', function(response){
+    console.log(response.statusCode + '-' + response.statusMessage);   
+});
+
+https.get('https://api-sgv-develop.azurewebsites.net/', function(response){
+    console.log(response.statusCode + '-' + response.statusMessage);   
+});
