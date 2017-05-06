@@ -4,9 +4,14 @@ var schemas = {};
 
 schemas.pillReminder = mongoose.Schema({
     chatId: String,
+    userName: String,
+    userNameChangeDate: Date,
     alertMessage: String,
-    tookThePill: Boolean,
-    loop: Boolean
+    alertMessageChangeDate: Date,
+    pause: Boolean,
+    daysInPause: Number,
+    days: Number,
+    maxDays: Number
 });
 
 module.exports = schemas;

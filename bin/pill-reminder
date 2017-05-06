@@ -3,7 +3,6 @@
 var TelegramBot = require('node-telegram-bot-api');
 var mongoose = require('mongoose');
 var Models = require('../database/models/models');
-var async = require('async');
 
 console.log('Executando scheduled job');
 
@@ -14,46 +13,36 @@ db.on('error', console.error);
 db.once('open', function () {
   console.log('Executando task');
 
-  Models.PillReminder.update({ loop: true }, { tookThePill: false }, {}, function (err, result) { });
   Models.PillReminder.find(function (err, docs) {
     console.log('Find executado. Obj de retorno do find: ', docs);
-    async.each(docs, function (doc, callback) {
-      console.log('Enviando mensagem: ', doc);
-      bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
-        console.log('Mensagem enviada');
-        callback();
-      });
+    docs.each(function (doc) {
+      if (doc.daysInPause == 8) {
+        doc.update({ daysInPause: 0, days: 0, pause: false });
+        bot.sendMessage(doc.chatId, doc.userName + ', hoje foi seu última dia de pausa. Amanhã você voltará a receber as notificações.').then(function () { })
+        return;
+      }
 
-      keepSendingMessageAsync()
-
-    }, function (err) {
-      if (err) {
-        console.log('Erro ao enviar msg: ', err);
+      if (doc.pause) {
+        console.log('Serviço em pausa, não enviando mensagem.', doc);
+        doc.update({ daysInPause: doc.daysInPause + 1 });
       } else {
-        console.log('All files have been processed successfully');
+        console.log('Enviando mensagem: ', doc);
+        doc.update({ days: doc.days + 1 });
+        bot.sendMessage(doc.chatId, doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () { })
+
+        if (doc.days + 1 == 21) {
+          bot.sendMessage(doc.chatId, doc.userName + ', você chegou ao último dia! Deseja fazer a pausa ou emendar a otra cartela?', {
+            reply_markup: JSON.stringify({
+              inline_keyboard: [
+                [{ text: 'Emendar', callback_data: '01-Emendar' }],
+                [{ text: 'Pausar', callback_data: '02-Pausar' }]
+              ]
+            })
+          }).then(function (messageSent) { })
+        }
       }
     });
   });
 });
-
-function keepSendingMessageAsync() {
-  var fiveMinutes = 60000 * 5;
-  console.log('Irei te lembrar daqui 5 minutos');
-  setTimeout(function () {
-    console.log('Soneca acionada');
-    Models.PillReminder.where({ loop: true, tookThePill: false }).find(function (err, docs) {
-      if (!docs || docs.length == 0) {
-        process.exit();
-      } else {
-        docs.forEach(function (doc) {
-          bot.sendMessage(parseInt(doc.chatId), doc.alertMessage ? doc.alertMessage : process.env.TELEGRAM_BOT_MESSAGE).then(function () {
-            console.log('Mensagem soneca enviada');
-          });
-        });
-        keepSendingMessageAsync();
-      }
-    });
-  }, fiveMinutes);
-}
 
 mongoose.connect(process.env.MONGOLAB_URI);

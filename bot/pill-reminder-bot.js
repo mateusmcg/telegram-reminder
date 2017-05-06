@@ -11,11 +11,19 @@ bot.onText(/^\/start/, function (msg, match) {
     var chatId = msg.chat.id.toString();
     Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
         if (doc) {
-            bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel').then(function () { });
+            bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete ligado. Caso queira desativar utilize o comando /cancel ou /pause para pausar as notificações.').then(function () { });
         } else {
-            var newChat = new Models.PillReminder({ chatId: chatId });
+            var userName = msg.from.first_name;
+            var newChat = new Models.PillReminder({
+                chatId: chatId,
+                userName: msg.from.first_name,
+                alertMessageChangeDate: new Date(),
+                pause: false,
+                days: 0,
+                maxDays: 21
+            });
             newChat.save(function (err, newChat) {
-                bot.sendMessage(msg.chat.id, 'Agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel').then(function () { });
+                bot.sendMessage(msg.chat.id, userName + ', agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel ou /pause para pausar as notificações.').then(function () { });
             });
         }
     });
@@ -37,7 +45,7 @@ bot.onText(/^\/setmessage (.+)/, function (msg, match) {
     var chatId = msg.chat.id.toString();
     var newMessage = match[1];
 
-    Models.PillReminder.update({ chatId: chatId }, { alertMessage: newMessage }, {}, function (err, result) {
+    Models.PillReminder.update({ chatId: chatId }, { alertMessage: newMessage, alertMessageChangeDate: new Date() }, {}, function (err, result) {
         bot.sendMessage(chatId, 'Mensagem de alerta alterada com sucesso para ' + newMessage).then(function () { });
     });
 });
@@ -47,40 +55,117 @@ bot.onText(/^\/getmessage/, function (msg, match) {
 
     Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
         if (doc) {
-            bot.sendMessage(chatId, 'Sua mensagem de alerta é "' + doc.alertMessage + '"').then(function () { });
+            if (doc.alertMessage) {
+                bot.sendMessage(chatId, 'Sua mensagem de alerta é "' + doc.alertMessage + '"').then(function () { });
+            } else {
+                bot.sendMessage(chatId, 'Você ainda não definiu uma mensagem, portanto irei te enviar isso: "' + process.env.TELEGRAM_BOT_MESSAGE + '"').then(function () { });
+            }
         } else {
-            bot.sendMessage(chatId, 'Chat não encontrado, tente novamente mais tarde, ou contate o administrador.').then(function () { });
+            bot.sendMessage(chatId, 'Cadastro não encontrado, tente reiniciar o bot, ou contate o administrador.').then(function () { });
         }
     });
 });
 
-bot.onText(/^\/loop (.+)/, function (msg, match) {
+bot.onText(/^\/setname (.+)/, function (msg, match) {
     var chatId = msg.chat.id.toString();
-    var active = match[1];
+    var newName = match[1];
 
-    if (active) {
-        Models.PillReminder.update({ chatId: chatId }, { loop: active }, {}, function (err, result) {
-            bot.sendMessage(chatId, 'Serviço de mensagens de repetição ativado com sucesso.').then(function () { });
-        });
-    } else {
-        Models.PillReminder.update({ chatId: chatId }, { loop: active }, {}, function (err, result) {
-            bot.sendMessage(chatId, 'Serviço de mensagens de repetição desativado com sucesso.').then(function () { });
-        });
-    }
+    Models.PillReminder.update({ chatId: chatId }, { userName: newName, userNameChangeDate: new Date() }, {}, function (err, result) {
+        bot.sendMessage(chatId, 'Irei te chamar de ' + newName + ' de agora em diante! :D').then(function () { });
+    });
 });
 
-bot.onText(/^\/tookit (.+)/, function (msg, match) {
+bot.onText(/^\/setname (.+)/, function (msg, match) {
     var chatId = msg.chat.id.toString();
-    var tookit = match[1];
+    var newDay = match[1];
 
-    if (tookit) {
-        Models.PillReminder.update({ chatId: chatId }, { tookThePill: tookit }, {}, function (err, result) {
-            bot.sendMessage(chatId, 'Ok, vou parar de te lembrar por agora !').then(function () { });
-        });
-    } else {
-        Models.PillReminder.update({ chatId: chatId }, { tookThePill: tookit }, {}, function (err, result) {
-            bot.sendMessage(chatId, 'Ok ok, vou te lembrar, relaxa.').then(function () { });
-        });
+    Models.PillReminder.update({ chatId: chatId }, { days: newDay }, {}, function (err, result) {
+        bot.sendMessage(chatId, 'Ok, agora vc está no ' + newDay + 'º dia.').then(function () { });
+    });
+});
+
+bot.onText(/^\/getdays/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+
+    Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
+        if (doc) {
+            var daysToGo = doc.maxDays - doc.days;
+            if (doc.days == 0) {
+                bot.sendMessage(chatId, doc.userName, ', vc ainda não tomou nenhum comprimido esse mês!\nFaltam: ' + daysToGo + ' dias.').then(function () { });
+            } else if (doc.days > 0 && doc.days < 21) {
+                bot.sendMessage(chatId, doc.userName, ', vc já tomou ' + doc.days + ' comprimidos esse mês!\nFaltam: ' + daysToGo + ' dias.').then(function () { });
+            } else {
+                bot.sendMessage(chatId, doc.userName, ', vc já tomou todos os comprimidos esse mês! Aguarde mais ' + (8 - doc.daysInPause) + ' para começar a nova cartela!').then(function () { });
+            }
+
+            if (doc.pause) {
+                bot.sendMessage(chatId, doc.userName + ', seu serviço está em pausa por ' + daysInPause + ' dias, portanto os dias informados acima podem estar desatualizados.').then(function () { });
+            }
+        } else {
+            bot.sendMessage(chatId, 'Cadastro não encontrado, tente reiniciar o bot, ou contate o administrador.').then(function () { });
+        }
+    });
+});
+
+bot.onText(/^\/pause/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+
+    Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
+        if (doc) {
+            if (doc.pause) {
+                bot.sendMessage(chatId, doc.userName + ', seu serviço já está pausado! :)').then(function () { });
+            } else {
+                Models.PillReminder.update({ chatId: chatId }, { pause: true }, {}, function (err, result) {
+                    bot.sendMessage(chatId, 'Ok, vou dar uma pausa nos meus serviços e descansar um pouco! Obrigado! :D').then(function () { });
+                });
+            }
+        } else {
+            bot.sendMessage(chatId, 'Cadastro não encontrado, tente reiniciar o bot, ou contate o administrador.').then(function () { });
+        }
+    });
+});
+
+bot.onText(/^\/unpause/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+
+    Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
+        if (doc) {
+            if (!doc.pause) {
+                bot.sendMessage(chatId, doc.userName + ', seu serviço já está operando normalmente! :)').then(function () { });
+            } else {
+                Models.PillReminder.update({ chatId: chatId }, { pause: false }, {}, function (err, result) {
+                    bot.sendMessage(chatId, 'Ok, o descanso foi bom mas está na hora de voltar a trabalhar né!\nHoje eu já te lembro ' + doc.userName + ', não se preocupe! :D').then(function () { });
+                });
+            }
+        } else {
+            bot.sendMessage(chatId, 'Cadastro não encontrado, tente reiniciar o bot, ou contate o administrador.').then(function () { });
+        }
+    });
+});
+
+bot.onText(/^\/teste/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+    bot.sendMessage(chatId, 'Você chegou ao último dia! Deseja fazer a pausa ou emendar a otra cartela?', {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [{ text: 'Emendar', callback_data: '01-Emendar' }],
+                [{ text: 'Pausar', callback_data: '02-Pausar' }]
+            ]
+        })
+    }).then(function (messageSent) { })
+
+});
+
+// Inline button callback queries
+bot.on('callback_query', function (msg) {
+    console.log(msg); // msg.data refers to the callback_data
+    switch (msg.data) {
+        case '01-Emendar': {
+            bot.answerCallbackQuery(msg.id, 'Ok, vamos emendar! :D');
+        }
+        case '02-Pausar': {
+            bot.answerCallbackQuery(msg.id, 'Ok, vamos pausar! :D');
+        }
     }
 });
 
