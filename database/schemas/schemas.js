@@ -9,9 +9,11 @@ schemas.pillReminder = mongoose.Schema({
     alertMessage: String,
     alertMessageChangeDate: Date,
     pause: Boolean,
+    manualPause: Boolean,
     daysInPause: Number,
     days: Number,
-    maxDays: Number
+    maxDays: Number,
+    answeredCallBackQuery: Boolean
 });
 
 module.exports = schemas;

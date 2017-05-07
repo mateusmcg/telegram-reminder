@@ -19,8 +19,11 @@ bot.onText(/^\/start/, function (msg, match) {
                 userName: msg.from.first_name,
                 alertMessageChangeDate: new Date(),
                 pause: false,
+                manualPause: false,
                 days: 0,
-                maxDays: 21
+                maxDays: 21,
+                daysInPause: 0,
+                answeredCallBackQuery: false
             });
             newChat.save(function (err, newChat) {
                 bot.sendMessage(msg.chat.id, userName + ', agora você receberá notificações às 00:30. \nCaso queira cancelar o serviço, utilize o comando /cancel ou /pause para pausar as notificações.').then(function () { });
@@ -75,7 +78,7 @@ bot.onText(/^\/setname (.+)/, function (msg, match) {
     });
 });
 
-bot.onText(/^\/setname (.+)/, function (msg, match) {
+bot.onText(/^\/setdays (.+)/, function (msg, match) {
     var chatId = msg.chat.id.toString();
     var newDay = match[1];
 
@@ -113,9 +116,11 @@ bot.onText(/^\/pause/, function (msg, match) {
     Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
         if (doc) {
             if (doc.pause) {
+                bot.sendMessage(chatId, doc.userName + ', você já está no intervalo de 8 dias. Faltam ' + (8 - doc.daysInPause) + ' dias para começar a nova cartela').then(function () { });
+            } else if(doc.manualPause){
                 bot.sendMessage(chatId, doc.userName + ', seu serviço já está pausado! :)').then(function () { });
             } else {
-                Models.PillReminder.update({ chatId: chatId }, { pause: true }, {}, function (err, result) {
+                Models.PillReminder.update({ chatId: chatId }, { manualPause: true }, {}, function (err, result) {
                     bot.sendMessage(chatId, 'Ok, vou dar uma pausa nos meus serviços e descansar um pouco! Obrigado! :D').then(function () { });
                 });
             }
@@ -130,10 +135,12 @@ bot.onText(/^\/unpause/, function (msg, match) {
 
     Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
         if (doc) {
-            if (!doc.pause) {
+            if (!doc.pause && !doc.manualPause) {
                 bot.sendMessage(chatId, doc.userName + ', seu serviço já está operando normalmente! :)').then(function () { });
+            } else if(doc.pause){
+                bot.sendMessage(chatId, doc.userName + ', você já está no intervalo de 8 dias. Faltam ' + (8 - doc.daysInPause) + ' dias para começar a nova cartela. Não é possível interromper essa pausa.').then(function () { });
             } else {
-                Models.PillReminder.update({ chatId: chatId }, { pause: false }, {}, function (err, result) {
+                Models.PillReminder.update({ chatId: chatId }, { manualPause: false }, {}, function (err, result) {
                     bot.sendMessage(chatId, 'Ok, o descanso foi bom mas está na hora de voltar a trabalhar né!\nHoje eu já te lembro ' + doc.userName + ', não se preocupe! :D').then(function () { });
                 });
             }
@@ -157,16 +164,28 @@ bot.onText(/^\/teste/, function (msg, match) {
 });
 
 // Inline button callback queries
-bot.on('callback_query', function (msg) {
-    console.log(msg); // msg.data refers to the callback_data
-    switch (msg.data) {
-        case '01-Emendar': {
-            bot.answerCallbackQuery(msg.id, 'Ok, vamos emendar! :D');
+bot.on('callback_query', function (callBackTelegram) {
+    console.log(callBackTelegram); // msg.data refers to the callback_data
+
+    var chatId = callBackTelegram.message.chat.id;
+
+    Models.PillReminder.where({ chatId: chatId }).findOne(function (err, doc) {
+        if (doc.answeredCallBackQuery) {
+            bot.answerCallbackQuery(callBackTelegram.id, doc.userName + ', vc já respondeu a pergunta.', true);
+            return;
         }
-        case '02-Pausar': {
-            bot.answerCallbackQuery(msg.id, 'Ok, vamos pausar! :D');
+
+        switch (callBackTelegram.data) {
+            case '01-Emendar': {
+                doc.update({ days: 0, answeredCallBackQuery: true }).exec();
+                bot.answerCallbackQuery(callBackTelegram.id, 'Ok, vamos emendar! :D', true);
+            }
+            case '02-Pausar': {
+                doc.update({ pause: true, answeredCallBackQuery: true }).exec();
+                bot.answerCallbackQuery(callBackTelegram.id, 'Ok, vamos pausar! :D', true);
+            }
         }
-    }
+    });
 });
 
 console.log('Bot server started.');
