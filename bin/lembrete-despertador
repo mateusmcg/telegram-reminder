@@ -20,6 +20,8 @@ db.once('open', function () {
     return;
   }
 
+  console.log('Hoje é sexta, executando job...');
+
   Models.AlarmReminder.find(function (err, docs) {
     console.log('Find executado. Obj de retorno do find: ', docs);
     docs.forEach(function (doc) {
@@ -30,3 +32,5 @@ db.once('open', function () {
     });
   });
 });
+
+mongoose.connect(process.env.MONGOLAB_URI);
