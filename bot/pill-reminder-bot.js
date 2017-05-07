@@ -36,7 +36,7 @@ bot.onText(/^\/alarmon/, function (msg, match) {
     var chatId = msg.chat.id.toString();
     Models.AlarmReminder.where({ chatId: chatId }).findOne(function (err, doc) {
         if (doc) {
-            bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete do despertador ligado. Caso queira desativar utilize o comando /cancelalarm.').then(function () { });
+            bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete do despertador ligado. Caso queira desativar utilize o comando /alarmoff.').then(function () { });
         } else {
             var userName = msg.from.first_name;
             var newChat = new Models.AlarmReminder({
@@ -44,7 +44,7 @@ bot.onText(/^\/alarmon/, function (msg, match) {
                 remind: true
             });
             newChat.save(function (err, newChat) {
-                bot.sendMessage(msg.chat.id, userName + ', agora você receberá notificações toda sexta-feira às 06:00. \nCaso queira cancelar o serviço, utilize o comando /cancelalarm.').then(function () { });
+                bot.sendMessage(msg.chat.id, userName + ', agora você receberá notificações toda sexta-feira às 06:00. \nCaso queira cancelar o serviço, utilize o comando /alarmoff.').then(function () { });
             });
         }
     });
