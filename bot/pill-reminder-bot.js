@@ -32,7 +32,7 @@ bot.onText(/^\/start/, function (msg, match) {
     });
 });
 
-bot.onText(/^\/startalarm/, function (msg, match) {
+bot.onText(/^\/alarm-on/, function (msg, match) {
     var chatId = msg.chat.id.toString();
     Models.AlarmReminder.where({ chatId: chatId }).findOne(function (err, doc) {
         if (doc) {
@@ -59,7 +59,7 @@ bot.onText(/^\/cancel/, function (msg, match) {
     })
 });
 
-bot.onText(/^\/cancelalarm/, function (msg, match) {
+bot.onText(/^\/alarm-off/, function (msg, match) {
     var chatId = msg.chat.id.toString();
     Models.AlarmReminder.where({ chatId: chatId }).findOneAndRemove(function (err, doc) {
         if (doc) {
