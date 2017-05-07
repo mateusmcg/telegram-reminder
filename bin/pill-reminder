@@ -6,7 +6,7 @@ var Models = require('../database/models/models');
 
 console.log('Executando scheduled job');
 
-var bot = new TelegramBot('263464526:AAGLXjdte-AwkImK0s4n_zqQwiaSCVDePeI');
+var bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 var db = mongoose.connection;
 
 db.on('error', console.error);
@@ -57,4 +57,4 @@ db.once('open', function () {
   });
 });
 
-mongoose.connect('mongodb://mateusc:mateusc@ds013916.mlab.com:13916/heroku_wlxnk213');
+mongoose.connect(process.env.MONGOLAB_URI);
