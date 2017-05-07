@@ -14,20 +14,12 @@ db.on('error', console.error);
 db.once('open', function () {
   console.log('Executando task');
 
-  Models.PillReminder.find(function (err, docs) {
+  Models.AlarmReminder.find(function (err, docs) {
     console.log('Find executado. Obj de retorno do find: ', docs);
-    async.each(docs, function (doc, callback) {
-      console.log('Enviando mensagem: ', doc);
-      bot.sendMessage(parseInt(doc.chatId), 'Lembra de perguntar sobre o feriado...').then(function () {
-        console.log('Mensagem enviada');
-        callback();
-      });
-
-    }, function (err) {
-      if (err) {
-        console.log('Erro ao enviar msg: ', err);
-      } else {
-        console.log('All files have been processed successfully');
+    docs.forEach(function (doc) {
+      if (doc.remind) {
+        console.log('Enviando mensagem: ', doc);
+        bot.sendMessage(doc.chatId, process.env.ALARM_REMINDER_MESSAGE).then(function () { });
       }
     });
   });

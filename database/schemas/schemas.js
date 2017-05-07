@@ -16,4 +16,9 @@ schemas.pillReminder = mongoose.Schema({
     answeredCallBackQuery: Boolean
 });
 
+schemas.alarmReminder = mongoose.Schema({
+    chatId: String,
+    remind: Boolean
+});
+
 module.exports = schemas;

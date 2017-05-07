@@ -32,9 +32,36 @@ bot.onText(/^\/start/, function (msg, match) {
     });
 });
 
+bot.onText(/^\/startalarm/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+    Models.AlarmReminder.where({ chatId: chatId }).findOne(function (err, doc) {
+        if (doc) {
+            bot.sendMessage(msg.chat.id, 'Você já está com o serviço de lembrete do despertador ligado. Caso queira desativar utilize o comando /cancelalarm.').then(function () { });
+        } else {
+            var userName = msg.from.first_name;
+            var newChat = new Models.AlarmReminder({
+                chatId: chatId,
+                remind: true
+            });
+            newChat.save(function (err, newChat) {
+                bot.sendMessage(msg.chat.id, userName + ', agora você receberá notificações toda sexta-feira às 06:00. \nCaso queira cancelar o serviço, utilize o comando /cancelalarm.').then(function () { });
+            });
+        }
+    });
+});
+
 bot.onText(/^\/cancel/, function (msg, match) {
     var chatId = msg.chat.id.toString();
     Models.PillReminder.where({ chatId: chatId }).findOneAndRemove(function (err, doc) {
+        if (doc) {
+            bot.sendMessage(msg.chat.id, 'Serviço cancelado com sucesso!').then(function () { });
+        }
+    })
+});
+
+bot.onText(/^\/cancelalarm/, function (msg, match) {
+    var chatId = msg.chat.id.toString();
+    Models.AlarmReminder.where({ chatId: chatId }).findOneAndRemove(function (err, doc) {
         if (doc) {
             bot.sendMessage(msg.chat.id, 'Serviço cancelado com sucesso!').then(function () { });
         }
