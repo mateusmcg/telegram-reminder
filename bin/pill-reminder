@@ -22,7 +22,7 @@ db.once('open', function () {
           return;
         }
 
-        if (doc.daysInPause == 8) {
+        if (doc.daysInPause == 7) {
           doc.update({ daysInPause: 0, days: 0, pause: false }).exec();
           bot.sendMessage(doc.chatId, doc.userName + ', hoje foi seu última dia de pausa. Amanhã você voltará a receber as notificações.').then(function () { })
           return;
