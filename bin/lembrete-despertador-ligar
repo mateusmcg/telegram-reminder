@@ -15,7 +15,7 @@ db.once('open', function () {
   console.log('Executando task');
 
   var today = new Date();
-  if (today.getDay() != 0 && today.getDay() != 5) {
+  if (today.getDay() != 0) {
     console.log('Este job deve rodar apenas domingo e sexta. Cancelando...');
     return;
   }
@@ -27,13 +27,8 @@ db.once('open', function () {
     docs.forEach(function (doc) {
       if (doc.remind) {
         console.log('Enviando mensagem: ', doc);
-        if (today.getDate() == 0) {
+        if (today.getDay() == 0) {
           bot.sendMessage(doc.chatId, process.env.ALARM_REMINDER_MESSAGE_SUNDAY).then(function () { });
-          return;
-        }
-
-        if (today.getDate() == 5) {
-          bot.sendMessage(doc.chatId, process.env.ALARM_REMINDER_MESSAGE_FRIDAY).then(function () { });
           return;
         }
       }

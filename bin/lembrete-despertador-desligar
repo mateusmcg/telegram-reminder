@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+var TelegramBot = require('node-telegram-bot-api');
+var mongoose = require('mongoose');
+var Models = require('../database/models/models');
+var async = require('async');
+
+console.log('Executando scheduled job');
+
+var bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+var db = mongoose.connection;
+
+db.on('error', console.error);
+db.once('open', function () {
+  console.log('Executando task');
+
+  var today = new Date();
+  if (today.getDay() != 5) {
+    console.log('Este job deve rodar apenas domingo e sexta. Cancelando...');
+    return;
+  }
+
+  console.log('Hoje é sexta, executando job...');
+
+  Models.AlarmReminder.find(function (err, docs) {
+    console.log('Find executado. Obj de retorno do find: ', docs);
+    docs.forEach(function (doc) {
+      if (doc.remind) {
+        console.log('Enviando mensagem: ', doc);
+        if (today.getDay() == 5) {
+          bot.sendMessage(doc.chatId, process.env.ALARM_REMINDER_MESSAGE_FRIDAY).then(function () { });
+          return;
+        }
+      }
+    });
+  });
+});
+
+mongoose.connect(process.env.MONGOLAB_URI);
